@@ -1,0 +1,25 @@
+"quests"
+{
+	"linear_quest" //unique key
+	{
+		"title"			"my quest name"
+		"description"	"the description of this quest"
+		
+		"stages"
+		{
+			//changes are triggers: kill unit, fetch item, dialogue, enter location
+			"10"
+			{
+				"text"		"kill the bad guy"
+			}
+			"20"
+			{
+				"text"		"find the building"
+			}
+			"30"
+			{
+				"text" 		"return to the shop"
+			}
+		}
+	}
+}

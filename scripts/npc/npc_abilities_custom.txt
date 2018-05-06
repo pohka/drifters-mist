@@ -1,0 +1,5 @@
+#base "abilities/proj_test.txt"
+"DOTAAbilities"
+{
+
+}
