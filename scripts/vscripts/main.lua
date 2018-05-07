@@ -59,10 +59,10 @@ function Brewlit:UpdateInput()
 				--set position
 				local startPt = hero:GetOrigin()
 				local forward = hero:GetForwardVector()
-				local speed = 7
+				local speed = 4
 				local maxSpeed = 60
 				local airResistPercent = 0.4
-				local minSpeed = 5
+				local minSpeed = 2
 				local reversePercent = 0.5
 				local reverseMaxSpeed = 25
 				
@@ -108,23 +108,34 @@ function Brewlit:UpdateInput()
 					VelocityTable[playerID] = maxVel
 				end
 				
-				--change position based on current velocity
+				--if currently moving
 				if VelocityTable[playerID] ~= Vector(0,0,0) then
+				
+					--change position based on current velocity
 					hero:SetOrigin(startPt + VelocityTable[playerID])
-				end
 				
-				--rotation
-				local angles = hero:GetAnglesAsVector();
-				local turnRate = 2
-				local yaw = angles.y
-				if input.x > 0 then
-					yaw = yaw - turnRate
-				elseif input.x < 0 then
-					yaw = yaw + turnRate
-				end
 				
-				if input ~= 0 then
-					hero:SetAngles(angles.x, yaw, angles.z)
+					--turning
+					--turn rate is better the slow you are moving
+					local angles = hero:GetAnglesAsVector();
+					local minTurnRate = 1.8
+					local maxTurnRate = 3.5
+					local turnRateRange = maxTurnRate - minTurnRate
+					local curSpeed = VelocityTable[playerID]:Length2D()
+					local speedPercent = curSpeed/maxSpeed
+					local turnRate = (turnRateRange * (1 - speedPercent)) + minTurnRate
+					
+					local yaw = angles.y
+					if input.x > 0 then
+						yaw = yaw - turnRate
+					elseif input.x < 0 then
+						yaw = yaw + turnRate
+					end
+					
+					--set rotation change
+					if input ~= 0 then
+						hero:SetAngles(angles.x, yaw, angles.z)
+					end
 				end
 				
 				--calc camera yaw degrees and update the net table
