@@ -1,4 +1,5 @@
 _G.PlayerInputTable = {}
+_G.VelocityTable = {}
 
 --startinting point for scripting
 function Brewlit:Start()
@@ -51,20 +52,65 @@ function Brewlit:UpdateInput()
 			local hero = player:GetAssignedHero()
 			if hero ~= nil then
 			
+				if VelocityTable[playerID] == nil then
+					VelocityTable[playerID] = Vector(0,0,0)
+				end
+			
 				--set position
 				local startPt = hero:GetOrigin()
 				local forward = hero:GetForwardVector()
-				local speed = 20
-				local endPt = nil
+				local speed = 7
+				local maxSpeed = 60
+				local airResistPercent = 0.4
+				local minSpeed = 5
+				local reversePercent = 0.5
+				local reverseMaxSpeed = 25
 				
+				--accelerate
 				if input.y > 0 then
-					endPt = startPt + forward * speed
+					VelocityTable[playerID] = VelocityTable[playerID] + (forward * speed)
 				elseif input.y < 0 then
-					endPt = startPt + forward * -speed
+					VelocityTable[playerID] = VelocityTable[playerID] - (forward * speed)
 				end
 				
-				if endPt ~= nil then
-					hero:SetOrigin(endPt)
+				--limit min speed
+				if VelocityTable[playerID]:Length2D() < minSpeed then
+					VelocityTable[playerID] = Vector(0,0,0)
+				else
+					--air resistance
+					local airResist = VelocityTable[playerID]:Normalized() * (speed * airResistPercent)
+					VelocityTable[playerID] = VelocityTable[playerID] - airResist
+				end
+				
+				
+				--check if moving forward or backwards
+				local movingForward = true
+				local dir = VelocityTable[playerID]:Normalized()
+				local dot = dir:Dot(forward)
+				local a = dot/(dir:Length() * forward:Length())
+				local val = math.acos(a)
+				local degrees = val/math.pi  * 180
+				if degrees > 90 then
+					movingForward = false
+				end
+				
+				--limit to maxSpeed
+				local velMag = VelocityTable[playerID]:Length2D()
+				--forward
+				if movingForward and velMag > maxSpeed then
+					local direction = VelocityTable[playerID]:Normalized()
+					local maxVel = direction * maxSpeed
+					VelocityTable[playerID] = maxVel
+				--reverse
+				elseif not movingForward and velMag > reverseMaxSpeed then
+					local direction = VelocityTable[playerID]:Normalized()
+					local maxVel = direction * reverseMaxSpeed
+					VelocityTable[playerID] = maxVel
+				end
+				
+				--change position based on current velocity
+				if VelocityTable[playerID] ~= Vector(0,0,0) then
+					hero:SetOrigin(startPt + VelocityTable[playerID])
 				end
 				
 				--rotation
